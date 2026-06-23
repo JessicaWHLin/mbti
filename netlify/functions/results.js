@@ -1,4 +1,4 @@
-const jsonHeaders = {
+﻿const jsonHeaders = {
   "Content-Type": "application/json"
 };
 
@@ -15,10 +15,10 @@ function jsonResponse(statusCode, body, headers = {}) {
 
 async function getDatabaseClient() {
   try {
-    const { neon } = await import("@netlify/database");
+    const { neon } = await import("@netlify/neon");
     return neon();
   } catch (error) {
-    throw new Error(`Netlify Database is not configured: ${error.message}`);
+    throw new Error(`Netlify Database client is not configured: ${error.message}`);
   }
 }
 
@@ -125,3 +125,4 @@ exports.handler = async (event) => {
 
   return jsonResponse(405, { error: "Method not allowed" }, { Allow: "GET, POST, OPTIONS" });
 };
+

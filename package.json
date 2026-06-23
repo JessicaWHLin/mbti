@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "mbti-quiz",
   "version": "1.0.0",
   "private": true,
@@ -7,9 +7,10 @@
     "dev": "netlify dev"
   },
   "dependencies": {
-    "@netlify/database": "latest"
+    "@netlify/neon": "latest"
   },
   "devDependencies": {
     "netlify-cli": "^26.0.2"
   }
 }
+

@@ -1,4 +1,4 @@
-﻿const jsonHeaders = {
+const jsonHeaders = {
   "Content-Type": "application/json"
 };
 
@@ -16,7 +16,8 @@ function jsonResponse(statusCode, body, headers = {}) {
 async function getDatabaseClient() {
   try {
     const { getDatabase } = await import("@netlify/database");
-    const db = getDatabase();
+    const connectionString = process.env.NETLIFY_DATABASE_CONNECTION_STRING || process.env.DATABASE_URL;
+    const db = connectionString ? getDatabase({ connectionString }) : getDatabase();
 
     if (!db || typeof db.sql !== "function") {
       throw new Error("getDatabase() did not return a SQL client");
@@ -60,7 +61,8 @@ exports.handler = async (event) => {
       return jsonResponse(200, {
         ok: true,
         function: "results",
-        netlifyDatabaseConfigured: true
+        netlifyDatabaseConfigured: true,
+        connectionStringProvided: Boolean(process.env.NETLIFY_DATABASE_CONNECTION_STRING || process.env.DATABASE_URL)
       });
     } catch (error) {
       return jsonResponse(500, {
@@ -68,7 +70,7 @@ exports.handler = async (event) => {
         function: "results",
         netlifyDatabaseConfigured: false,
         error: error.message,
-        hint: "Create a built-in Netlify Database for this site, keep @netlify/database installed, and redeploy so Functions receive the database connection."
+        hint: "Copy the built-in Netlify Database connection string into NETLIFY_DATABASE_CONNECTION_STRING, then redeploy."
       });
     }
   }
@@ -79,7 +81,7 @@ exports.handler = async (event) => {
   } catch (error) {
     return jsonResponse(500, {
       error: error.message,
-      hint: "Create a built-in Netlify Database for this site, then redeploy so the Function can access it."
+      hint: "Copy the built-in Netlify Database connection string into NETLIFY_DATABASE_CONNECTION_STRING, then redeploy."
     });
   }
 

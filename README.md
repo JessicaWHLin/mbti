@@ -1,4 +1,4 @@
-﻿# MBTI 探索工具
+# MBTI 探索工具
 
 這是一個部署在 Netlify 的 MBTI 測驗網站。使用者完成測驗後，結果會自動寫入後端，結果頁可以看到所有使用者的姓名與 MBTI 類型。
 
@@ -127,6 +127,43 @@ GET /api/results?health=1
 | `question_ids` | 本次抽到的題目 |
 | `answers` | 使用者答案 |
 
+
+## 如果健康檢查顯示 connectionString 錯誤
+
+如果看到：
+
+```text
+The environment has not been configured to use Netlify Database.
+You must supply the `connectionString` option when calling `getDatabase()`.
+```
+
+代表 Function 已部署成功，但目前這個 Function runtime 沒有自動取得 Database 連線字串。
+
+請到 Netlify 後台設定環境變數：
+
+1. 進入 Netlify site。
+2. 進入 built-in Netlify Database。
+3. 找到 database connection string。
+4. 到 `Site configuration` 或 `Environment variables`。
+5. 新增環境變數：
+
+```text
+NETLIFY_DATABASE_CONNECTION_STRING=你的 Database connection string
+```
+
+6. 儲存後重新部署，建議使用 `Clear cache and deploy site`。
+
+目前 Function 會優先讀取：
+
+```text
+NETLIFY_DATABASE_CONNECTION_STRING
+```
+
+如果沒有，才會嘗試讀取：
+
+```text
+DATABASE_URL
+```
 ## 部署後測試
 
 先開健康檢查：

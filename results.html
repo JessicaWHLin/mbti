@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBTI 測驗結果總覽</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page-shell results-page">
+    <header class="results-header">
+      <div>
+        <p class="eyebrow">MBTI Results</p>
+        <h1>所有使用者測驗結果</h1>
+        <p class="results-header__text">此頁僅呈現使用者姓名與 MBTI 結果，方便快速瀏覽整體測驗狀況。</p>
+      </div>
+      <a class="button button--ghost" href="index.html">回到測驗</a>
+    </header>
+
+    <main class="card results-card">
+      <div class="results-toolbar">
+        <div>
+          <p class="eyebrow">Overview</p>
+          <h2>結果列表</h2>
+        </div>
+        <p class="results-count" id="results-count">讀取中</p>
+      </div>
+
+      <div class="results-state" id="results-state" aria-live="polite">正在讀取測驗結果...</div>
+
+      <div class="results-table-wrap hidden" id="results-table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th scope="col">使用者姓名</th>
+              <th scope="col">MBTI 結果</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/results.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBTI探索工具</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;800&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">Interactive MBTI Tool</p>
+        <h1>30 題 MBTI 職涯風格測驗</h1>
+        <p class="hero__text">
+          從 50 題題庫中隨機抽出 30 題，並讓 E/I、S/N、T/F、J/P 四個面向保持平均分配，協助快速整理你的工作偏好與協作風格。
+        </p>
+        <div class="hero__badges">
+          <span>每次隨機 30 題</span>
+          <span>四面向平均抽題</span>
+          <span>結果寫入後端資料庫</span>
+        </div>
+      </div>
+      <div class="hero__panel">
+        <p class="hero__panel-title">測驗流程</p>
+        <ol>
+          <li>輸入姓名後開始測驗。</li>
+          <li>依直覺完成 30 題選擇。</li>
+          <li>查看 MBTI 結果與工作風格分析。</li>
+        </ol>
+      </div>
+    </header>
+
+    <main>
+      <section class="card intro-card" id="intro-screen">
+        <h2>開始測驗</h2>
+        <p>
+          這份測驗適合用來做自我覺察與團隊溝通參考。請輸入姓名，系統會在完成後將結果記錄到後端資料庫。
+        </p>
+        <div class="name-field">
+          <label for="user-name">姓名</label>
+          <input id="user-name" type="text" autocomplete="name" placeholder="請輸入姓名">
+          <p class="field-error" id="name-error" aria-live="polite"></p>
+        </div>
+        <button class="button button--primary" id="start-button" type="button">開始測驗</button>
+      </section>
+
+      <section class="card quiz-card hidden" id="quiz-screen" aria-live="polite">
+        <div class="quiz-card__top">
+          <div>
+            <p class="eyebrow">Question</p>
+            <h2 id="question-counter">第 1 題 / 30 題</h2>
+          </div>
+          <p class="dimension-tag" id="dimension-tag">E / I</p>
+        </div>
+
+        <div class="progress">
+          <div class="progress__bar" id="progress-bar"></div>
+        </div>
+
+        <h3 class="question-text" id="question-text"></h3>
+
+        <form id="quiz-form" class="options" aria-label="MBTI 測驗選項"></form>
+
+        <p class="helper-text" id="helper-text">請依照第一直覺選擇最符合自己的描述。</p>
+
+        <div class="quiz-actions">
+          <button class="button button--ghost" id="prev-button" type="button">上一題</button>
+        </div>
+      </section>
+
+      <section class="card result-card hidden" id="result-screen">
+        <div class="report-layout">
+          <aside class="report-summary">
+            <div class="result-card__header">
+              <div>
+                <p class="eyebrow" id="result-name">你的測驗結果</p>
+                <h2 id="result-type">INTJ</h2>
+                <p class="result-title" id="result-title"></p>
+              </div>
+              <div class="result-actions">
+                <a class="button button--primary" href="results.html">查看所有結果</a>
+                <button class="button button--ghost" id="restart-button" type="button">重新測驗</button>
+              </div>
+            </div>
+
+            <p class="result-summary" id="result-summary"></p>
+            <p class="save-status" id="save-status" aria-live="polite"></p>
+
+            <section class="result-block result-block--summary">
+              <h3>面向分數</h3>
+              <div class="dimension-grid" id="dimension-grid"></div>
+              <p class="dimension-note">
+                偏好強度代表該面向累積分數的絕對值；分數越高，表示該偏好越明顯。接近 0 代表兩側偏好較平衡。
+              </p>
+            </section>
+          </aside>
+
+          <div class="report-analysis">
+            <div class="result-layout">
+              <section class="result-block result-block--accent">
+                <h3>優勢</h3>
+                <ul class="chip-list" id="strengths-list"></ul>
+              </section>
+
+              <section class="result-block">
+                <h3>可能挑戰</h3>
+                <ul class="chip-list chip-list--muted" id="challenges-list"></ul>
+              </section>
+
+              <section class="result-block result-block--wide">
+                <h3>適合的軟體與數據角色</h3>
+                <ul class="role-list" id="roles-list"></ul>
+                <p class="role-reason" id="role-reason"></p>
+              </section>
+
+              <section class="result-block">
+                <h3>溝通風格</h3>
+                <p id="communication-text"></p>
+              </section>
+
+              <section class="result-block">
+                <h3>壓力反應</h3>
+                <p id="stress-text"></p>
+              </section>
+
+              <section class="result-block result-block--wide">
+                <h3>工作節奏</h3>
+                <p id="workstyle-text"></p>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <p class="disclaimer">
+          本測驗僅供自我探索與團隊溝通參考，並非正式心理測驗或人事決策依據。
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <template id="option-template">
+    <label class="option-card">
+      <input type="radio" name="answer">
+      <span class="option-card__content">
+        <span class="option-card__title"></span>
+        <span class="option-card__subtitle"></span>
+      </span>
+    </label>
+  </template>
+
+  <script src="data/questions.js"></script>
+  <script src="data/mbti-types.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

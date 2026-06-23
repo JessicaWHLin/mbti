@@ -1,0 +1,15 @@
+{
+  "name": "mbti-quiz",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MBTI quiz with Netlify Functions and Netlify Database result storage.",
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "@netlify/database": "latest"
+  },
+  "devDependencies": {
+    "netlify-cli": "^26.0.2"
+  }
+}

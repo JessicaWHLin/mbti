@@ -1,4 +1,5 @@
-[build]
+﻿[build]
+  command = "echo No frontend build required"
   publish = "."
 
 [build.environment]

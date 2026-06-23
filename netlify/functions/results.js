@@ -15,10 +15,16 @@ function jsonResponse(statusCode, body, headers = {}) {
 
 async function getDatabaseClient() {
   try {
-    const { neon } = await import("@netlify/neon");
-    return neon();
+    const { getDatabase } = await import("@netlify/database");
+    const db = getDatabase();
+
+    if (!db || typeof db.sql !== "function") {
+      throw new Error("getDatabase() did not return a SQL client");
+    }
+
+    return db;
   } catch (error) {
-    throw new Error(`Netlify Database client is not configured: ${error.message}`);
+    throw new Error(`Netlify Database is not configured: ${error.message}`);
   }
 }
 
@@ -49,8 +55,8 @@ exports.handler = async (event) => {
   const query = event.queryStringParameters || {};
   if (event.httpMethod === "GET" && query.health === "1") {
     try {
-      const healthSql = await getDatabaseClient();
-      await healthSql`select 1`;
+      const db = await getDatabaseClient();
+      await db.sql`select 1`;
       return jsonResponse(200, {
         ok: true,
         function: "results",
@@ -62,18 +68,18 @@ exports.handler = async (event) => {
         function: "results",
         netlifyDatabaseConfigured: false,
         error: error.message,
-        hint: "Run `netlify database init`, link the site, and redeploy so Netlify Database connection variables are available to Functions."
+        hint: "Create a built-in Netlify Database for this site, keep @netlify/database installed, and redeploy so Functions receive the database connection."
       });
     }
   }
 
-  let sql;
+  let db;
   try {
-    sql = await getDatabaseClient();
+    db = await getDatabaseClient();
   } catch (error) {
     return jsonResponse(500, {
       error: error.message,
-      hint: "Run `netlify database init`, then deploy through Netlify so the Function can access the database."
+      hint: "Create a built-in Netlify Database for this site, then redeploy so the Function can access it."
     });
   }
 
@@ -90,7 +96,7 @@ exports.handler = async (event) => {
     }
 
     try {
-      const rows = await sql`
+      const rows = await db.sql`
         insert into mbti_results (name, type, totals, question_ids, answers)
         values (
           ${payload.name.trim().slice(0, 80)},
@@ -110,7 +116,7 @@ exports.handler = async (event) => {
 
   if (event.httpMethod === "GET") {
     try {
-      const rows = await sql`
+      const rows = await db.sql`
         select id, name, type, totals, question_ids, answers, created_at
         from mbti_results
         order by created_at desc
@@ -125,4 +131,3 @@ exports.handler = async (event) => {
 
   return jsonResponse(405, { error: "Method not allowed" }, { Allow: "GET, POST, OPTIONS" });
 };
-

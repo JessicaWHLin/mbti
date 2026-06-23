@@ -1,4 +1,4 @@
-# MBTI 探索工具
+﻿# MBTI 探索工具
 
 這是一個部署在 Netlify 的 MBTI 測驗網站。使用者完成測驗後，結果會自動寫入後端，結果頁可以看到所有使用者的姓名與 MBTI 類型。
 
@@ -9,11 +9,24 @@
 ```text
 前端測驗頁
 → Netlify Function
-→ Netlify Database
+→ Netlify Database（built-in feature）
 → 結果總覽頁
 ```
 
-也就是說，不使用手動維護 CSV 的方式。
+不使用 CSV 手動維護，也不使用舊的 Netlify DB extension。
+
+## 重要提醒
+
+Netlify 已停止透過舊的 Netlify DB extension 建立新資料庫。現在要使用 Netlify 內建的 Database 功能。
+
+如果看到這類訊息：
+
+```text
+New database creation via the Netlify DB extension is no longer available.
+Netlify Database is now available as a built-in feature.
+```
+
+請改到 Netlify site 後台使用 built-in Database，不要再找 extension 安裝流程。
 
 ## 為什麼需要 Netlify Function + Database
 
@@ -24,10 +37,11 @@
 - 結果頁可以看到所有已送出的結果
 - 使用者不需要登入後台
 
-如果只用一般的靜態網頁，前端只能顯示畫面，不能安全地把資料寫進後端。因此本專案使用：
+本專案使用：
 
-- `Netlify Function`：負責接收使用者送出的結果
-- `Netlify Database`：負責保存所有人的測驗結果
+- `Netlify Function`：接收使用者送出的結果
+- `Netlify Database`：保存所有人的測驗結果
+- `@netlify/database`：Function 內用來連接 built-in Database 的套件
 
 ## 使用者流程
 
@@ -64,68 +78,40 @@
         └── results.js
 ```
 
-## 重要檔案說明
+## Netlify 後台設定步驟
 
-`index.html`
+1. 到 Netlify 後台，進入這個 site。
+2. 確認這個 site 是從 Git repository 部署，不是只用拖拉資料夾部署。
+3. 在 site 後台找到 Netlify Database 的 built-in 功能。
+4. 建立或啟用 Database。
+5. 重新部署網站，建議使用 `Clear cache and deploy site`。
+6. 確認 Function 有成功部署。
 
-測驗主頁。
+## API 路徑
 
-`results.html`
-
-所有使用者結果頁，只呈現姓名與 MBTI 結果。
-
-`js/app.js`
-
-前端測驗流程、計分、送出結果。
-
-`js/results.js`
-
-讀取所有測驗結果並渲染到結果頁。
-
-`netlify/functions/results.js`
-
-後端 API。負責接收結果、寫入資料庫，以及讀取所有結果。
-
-`netlify/database/migrations/001_create_mbti_results/migration.sql`
-
-建立 `mbti_results` 資料表。
-
-## Netlify 上需要完成的事
-
-請確認 Netlify 專案有啟用：
-
-1. Netlify Functions
-2. Netlify Database
-3. `netlify.toml` 設定有被 Netlify 讀到
-
-本專案的 `netlify.toml` 已經設定：
-
-```text
-Functions 位置：netlify/functions
-API 路徑：/api/results
-```
-
-前端會呼叫：
+前端送出測驗結果：
 
 ```text
 POST /api/results
 ```
 
-用來儲存測驗結果。
-
-結果頁會呼叫：
+結果頁讀取所有結果：
 
 ```text
 GET /api/results
 ```
 
-用來讀取所有使用者結果。
+健康檢查：
 
-## 資料表內容
+```text
+GET /api/results?health=1
+```
+
+## 資料表
 
 資料會寫入 `mbti_results`。
 
-目前主要使用欄位：
+主要欄位：
 
 | 欄位 | 用途 |
 | --- | --- |
@@ -133,7 +119,7 @@ GET /api/results
 | `type` | MBTI 結果 |
 | `created_at` | 建立時間 |
 
-資料表實際也保留了作答細節，方便之後需要分析時使用：
+保留的分析欄位：
 
 | 欄位 | 用途 |
 | --- | --- |
@@ -143,7 +129,7 @@ GET /api/results
 
 ## 部署後測試
 
-部署完成後，先測健康檢查：
+先開健康檢查：
 
 ```text
 https://你的-netlify網址/api/results?health=1
@@ -159,7 +145,7 @@ https://你的-netlify網址/api/results?health=1
 }
 ```
 
-接著測完整流程：
+再測完整流程：
 
 1. 打開網站首頁。
 2. 輸入姓名。
@@ -168,47 +154,43 @@ https://你的-netlify網址/api/results?health=1
 5. 點「查看所有結果」。
 6. 確認剛剛的姓名與 MBTI 類型出現在列表中。
 
-## 常見狀況
+## 常見錯誤
 
-### 測驗可以玩，但結果沒有被記錄
+### `neon is not a function`
 
-可能原因：
+代表 Function 使用了舊的 client 寫法。
 
-- Netlify Database 還沒啟用
-- Function 沒有成功部署
-- migration 沒有建立資料表
+目前專案已改成 built-in Netlify Database 寫法：
 
-可以先開：
-
-```text
-/api/results?health=1
+```js
+const { getDatabase } = await import("@netlify/database")
+const db = getDatabase()
+await db.sql`select 1`
 ```
 
-確認 Function 和 Database 是否正常。
+請重新部署最新版本。
 
-### 結果頁顯示讀取失敗
+### `relation "mbti_results" does not exist`
+
+代表 Database 已連上，但資料表尚未建立。
+
+請確認 migration 有被套用，或在 Netlify Database 裡建立 `mbti_results` table。
+
+### 結果頁讀取失敗
 
 通常代表：
 
-- `/api/results` 沒有回應
 - Function 沒有部署成功
-- Database 連線失敗
-
-### 結果頁是空的
-
-可能原因：
-
-- 目前還沒有人完成測驗
-- 測驗結果沒有成功寫入 Database
+- Database 沒有啟用
+- Database 沒有和目前 site 綁定
+- 資料表尚未建立
 
 ## 結論
 
-本專案不使用 CSV 手動維護，因為目標是讓使用者完成測驗後自動記錄結果。
-
-目前維持：
+本專案維持自動記錄版：
 
 ```text
-Netlify Function + Netlify Database
+Netlify Function + built-in Netlify Database
 ```
 
-這是比較適合「自動保存所有使用者結果」的做法。
+這是目前比較適合「自動保存所有使用者結果」的做法。
